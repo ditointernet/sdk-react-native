@@ -3,7 +3,9 @@ import {
   FirebaseMessagingTypes,
   default as messaging,
 } from '@react-native-firebase/messaging';
+import {Linking} from 'react-native';
 import notifee, {AndroidImportance, EventType} from '@notifee/react-native';
+
 import {UserData, ditoAPI} from '../utils/api';
 
 export const useNotification = () => {
@@ -64,6 +66,7 @@ export const useNotification = () => {
                 notification:
                   String(data.notification) || '01HV25WN4E3P3GHSXD90WHQ2BZ',
                 reference: String(data.reference),
+                link: String(details.link),
               },
             };
 
@@ -124,14 +127,17 @@ export const useNotification = () => {
             console.log('User dismissed notification', detail.notification);
             break;
           case EventType.PRESS:
-            const notification = String(
-              detail.notification?.data?.notification,
-            );
-            const reference = String(detail.notification?.data?.reference);
+            const link = String(detail.notification?.data?.link);
 
-            notification &&
-              reference &&
-              (await openNotification(notification, reference));
+            if (!link) {
+              break;
+            }
+
+            try {
+              await Linking.openURL(link);
+            } catch (error) {
+              console.error(error);
+            }
 
             break;
         }
